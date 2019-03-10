@@ -42,7 +42,12 @@ class UndefinedHeaderVarError(Exception):
 
 
 class ClientBase:
-    def __init__(self, api_base_url: Url, header_map: Optional[HeaderMap] = None, **headers: Headers):
+    def __init__(
+        self,
+        api_base_url: Url,
+        header_map: Optional[HeaderMap] = None,
+        **headers: Headers,
+    ):
         self.api_base_url = api_base_url
         self.header_map = header_map
         for var, val in headers.items():
@@ -68,8 +73,7 @@ class ClientBase:
     @property
     def headers(self) -> HeaderDetail:
         return {
-            self._header_name_from_var(v): getattr(self, v)
-            for v in self._header_vars
+            self._header_name_from_var(v): getattr(self, v) for v in self._header_vars
         }
 
     def _build_param(self, method: Method, params: Optional[Param]) -> Payload:
@@ -88,7 +92,7 @@ class ClientBase:
     def _apply_path_params(self, endpoint: str, **path_params: PathParam) -> str:
         # SO UGLY
         for k, v in path_params.items():
-            endpoint = endpoint.replace(f':{k}', v)
+            endpoint = endpoint.replace(f":{k}", v)
         return endpoint
 
     def _request(self, url: Url, method: Method, **params: Payload) -> Type[Response]:
@@ -105,9 +109,13 @@ class ClientBase:
     def method_with_path_params(
         self, meth: Method, endpoint: str
     ) -> Callable[[KwArg(PathParam)], Callable[[KwArg(Payload)], Type[Response]]]:
-        def _req(**path_params: PathParam) -> Callable[[KwArg(Payload)], Type[Response]]:
+        def _req(
+            **path_params: PathParam
+        ) -> Callable[[KwArg(Payload)], Type[Response]]:
             def __req(**payload: Payload) -> Type[Response]:
-                return self.method(meth, self._apply_path_params(endpoint, **path_params))(**payload)
+                return self.method(
+                    meth, self._apply_path_params(endpoint, **path_params)
+                )(**payload)
 
             return __req
 

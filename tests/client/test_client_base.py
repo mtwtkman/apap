@@ -9,6 +9,7 @@ from apap.method import Method
 class ClientBaseTestBase(unittest.TestCase):
     def _makeOne(self, api_base_url, header_map=None, **headers):
         from apap.client import ClientBase
+
         return ClientBase(api_base_url, header_map, **headers)
 
 
@@ -27,8 +28,7 @@ class TestClientBaseHeaders(ClientBaseTestBase):
         values = [1, "x"]
         subject = self._callFUT(header_map, **dict(zip(header_vars, values)))
         self.assertEqual(
-            subject,
-            {k: val for k, _, val in zip(header_names, header_vars, values)},
+            subject, {k: val for k, _, val in zip(header_names, header_vars, values)}
         )
 
 
@@ -77,7 +77,7 @@ class TestClientBaseBuildUrl(ClientBaseTestBase):
 
 class TestClientBaseApplyPathParams(ClientBaseTestBase):
     def _callFUT(self, endpoint, **path_params):
-        return self._makeOne('hoge')._apply_path_params(endpoint, **path_params)
+        return self._makeOne("hoge")._apply_path_params(endpoint, **path_params)
 
     def test_ok(self):
         endpoint = "y/:path1/z/:path2/---"
@@ -122,9 +122,7 @@ class TestClientBaseMethod(ClientBaseTestBase):
 
 class TestClientBaseMethodWithPathParams(ClientBaseTestBase):
     def _callFUT(self, method, api_base_url, endpoint):
-        return self._makeOne(api_base_url).method_with_path_params(
-            method, endpoint
-        )
+        return self._makeOne(api_base_url).method_with_path_params(method, endpoint)
 
     def assertTakeOneKwarg(self, subject):
         self.assertEqual(len(subject), 1)
@@ -142,9 +140,11 @@ class TestClientBaseMethodWithPathParams(ClientBaseTestBase):
         self.assertTakeOneKwarg(subject)
 
     def test_deepest_func_calls_method(self):
-        endpoint = 'cats/:name'
-        params = {'name': 'nico'}
-        with mock.patch("apap.client.ClientBase.method") as M, mock.patch("apap.client.ClientBase._apply_path_params") as M2:
+        endpoint = "cats/:name"
+        params = {"name": "nico"}
+        with mock.patch("apap.client.ClientBase.method") as M, mock.patch(
+            "apap.client.ClientBase._apply_path_params"
+        ) as M2:
             self._callFUT(Method.Get, "meth", endpoint)(**params)()
             self.assertEqual(M.call_count, 1)
             self.assertEqual(M2.call_count, 1)
