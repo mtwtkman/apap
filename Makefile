@@ -8,3 +8,6 @@ type:
 
 lint:
 	poetry run black apap/*.py tests/**/*.py tests/*.py
+
+check:
+	make lint && make type && make test

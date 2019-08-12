@@ -91,7 +91,7 @@ class ClientBase:
     def _apply_path_params(self, endpoint: str, **path_params: PathParam) -> str:
         # SO UGLY
         for k, v in path_params.items():
-            endpoint = endpoint.replace(f":{k}", v)
+            endpoint = endpoint.replace(f":{k}", cast(str, v))
         return endpoint
 
     def _request(self, url: Url, method: Method, **params: Payload) -> Type[Response]:

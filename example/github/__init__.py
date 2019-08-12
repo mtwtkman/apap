@@ -22,7 +22,9 @@ if __name__ == '__main__':
 
 
     access_token = os.environ['GITHUB_ACCESS_TOKEN']
+    username = os.environ['USERNAME']
 
-    github_client = apap.apply([Repository])(access_token=f'token {access_token}')
-    resp = github_client.repo.get_one(username='mtwtkman')()
+    github_client = apap.apply(Repository)(access_token=f'token {access_token}')
+    resp = github_client.repo.get_one(username=username)()
+    print(resp.text)
     assert resp.status_code == 200
