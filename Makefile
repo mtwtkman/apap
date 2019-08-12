@@ -11,3 +11,6 @@ lint:
 
 check:
 	make lint && make type && make test
+
+pub:
+	make check && poetry publish --build

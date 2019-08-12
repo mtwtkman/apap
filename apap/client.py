@@ -13,7 +13,6 @@ from typing import (
     ValuesView,
 )
 from collections import namedtuple
-import asyncio
 
 import requests
 from requests.models import Response
