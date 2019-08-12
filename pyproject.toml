@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "apap"
-version = "0.0.0"
+version = "0.0.0-b"
 description = "Declarative and handy RESTful client factory"
 authors = ["mtwtkman <yo@mtwtkman.dev>"]
 license = "WTFPL"
