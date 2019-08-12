@@ -3,7 +3,7 @@ from typing import Sequence, Type
 from .client import Client, Headers
 
 
-def apply(clients: Sequence[Type[Client]]):
+def apply(*clients: Type[Client]):
     class _:
         def __init__(self, **headers: Headers):
             for c in clients:

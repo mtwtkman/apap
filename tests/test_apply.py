@@ -5,10 +5,10 @@ from apap.method import Method
 
 
 class TestApply(unittest.TestCase):
-    def _callFUT(self, clients):
+    def _callFUT(self, *clients):
         import apap
 
-        return apap.apply(clients)
+        return apap.apply(*clients)
 
     def test_ok(self):
         class Api(Client):
@@ -27,6 +27,6 @@ class TestApply(unittest.TestCase):
             _method_map = MethodMap(("post", Method.Post, "endpoin2/resources"))
 
         clients = [Endpoint1, Endpoint2]
-        subject = self._callFUT(clients)(my_header="hoge")
+        subject = self._callFUT(*clients)(my_header="hoge")
         for c in clients:
             self.assertTrue(hasattr(subject, c.name))

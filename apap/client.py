@@ -18,7 +18,6 @@ import asyncio
 import requests
 from requests.models import Response
 from mypy_extensions import KwArg
-import aiohttp
 
 from .method import Method
 
