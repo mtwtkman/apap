@@ -1,9 +1,16 @@
-|version|
+|version| |ci-status|
 
 .. |version| image:: https://img.shields.io/badge/python-3.7-blue.svg?style=flat
     :alt: version
     :scale: 100%
     :target: https://www.python.org/downloads/release/python-370/
+
+
+.. |ci-status| image:: https://circleci.com/gh/mtwtkman/apap.svg?style=svg
+    :alt: circleci status
+    :scale: 100%
+    :target: https://circleci.com/gh/mtwtkman/apap
+
 
 Required
 ========
