@@ -1,6 +1,6 @@
 from typing import Sequence, Type
 
-from .client import Client, Headers
+from .client import Client, Headers, MethodMap
 
 
 def apply(*clients: Type[Client]):
