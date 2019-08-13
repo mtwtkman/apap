@@ -17,14 +17,35 @@ Required
 
 python3.7+
 
-Usage
-=====
+Example
+=======
 
-see `example`_
+When you want to implement github api client, you just create a class which inherits `apap.Client` class.
 
-TODO
-====
+.. code:: python
 
-asyncronous
+   import os
 
-.. _example: https://github.com/mtwtkman/apap/blob/master/example/github/__init__.py
+   from apap import MethodMap, Client, Method, apply
+
+
+   class GithubAPI(Client):
+      api_base_url = 'https://api.github.com'
+      header_map = {'Authorization': 'access_token'}
+
+
+   class Repo(GithubAPI):
+      name = 'repo'
+
+      _method_map = MethodMap(
+         ('get_one', Method.Get, 'users/:username/repos'),
+      )
+
+
+   access_token = os.environ['ACCESS_TOKEN']
+   username = os.environ['USERNAME']
+
+   gh_client = apply(Repo)(access_token=f'token {access_token}')
+   resp = gh_client.repo.get_one(username=username)()
+   print(resp.text)
+   assert resp.status_code == 200
