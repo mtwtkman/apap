@@ -115,8 +115,9 @@ class TestClientBaseMethod(ClientBaseTestBase):
             payload = {"x": 1}
             self._callFUT(method, api_base_url, endpoint)(**payload)
             self.assertEqual(M.call_count, 1)
+
             self.assertEqual(
-                M.call_args, [(f"{api_base_url}/{endpoint}", method), payload]
+                M.call_args, ((f"{api_base_url}/{endpoint}", method), {"data": payload})
             )
 
 

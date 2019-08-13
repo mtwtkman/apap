@@ -30,7 +30,7 @@ Param = Dict[ParamName, Any]
 PathParamName = NewType("PathParamName", str)
 DataParamName = NewType("DataParamName", str)
 PathParam = Dict[PathParamName, Param]
-Payload = Union[PathParam, Dict[DataParamName, Param]]
+Payload = Dict[DataParamName, Param]
 Headers = Dict[HeaderVar, Any]
 HeaderDetail = Dict[HeaderName, Headers]
 
@@ -74,15 +74,13 @@ class ClientBase:
             self._header_name_from_var(v): getattr(self, v) for v in self._header_vars
         }
 
-    def _build_param(self, method: Method, params: Optional[Param]) -> Payload:
-        return cast(
-            Payload,
-            {
-                PathParamName("params")
-                if method in (Method.Get, Method.Delete)
-                else DataParamName("data"): params or {}
-            },
-        )
+    def _build_param(self, method: Method, params: Param) -> Payload:
+        return {
+            DataParamName(
+                "params" if method in (Method.Get, Method.Delete) else "data"
+            ): params
+            or {}
+        }
 
     def _build_url(self, endpoint: str) -> Url:
         return Url(f"{self.api_base_url}/{endpoint}")
@@ -93,27 +91,29 @@ class ClientBase:
             endpoint = endpoint.replace(f":{k}", cast(str, v))
         return endpoint
 
-    def _request(self, url: Url, method: Method, **params: Payload) -> Type[Response]:
+    def _request(self, url: Url, method: Method, **payload) -> Type[Response]:
         raise NotImplementedError
 
     def method(
         self, meth: Method, endpoint: str
-    ) -> Callable[[KwArg(Payload)], Type[Response]]:
-        def _req(**payload: Payload) -> Type[Response]:
-            return self._request(self._build_url(endpoint), meth, **payload)
+    ) -> Callable[[KwArg(Param)], Type[Response]]:
+        def _req(**params) -> Type[Response]:
+            return self._request(  # type: ignore
+                self._build_url(endpoint),
+                meth,
+                **self._build_param(meth, cast(Param, params)),
+            )
 
         return _req
 
     def method_with_path_params(
         self, meth: Method, endpoint: str
-    ) -> Callable[[KwArg(PathParam)], Callable[[KwArg(Payload)], Type[Response]]]:
-        def _req(
-            **path_params: PathParam
-        ) -> Callable[[KwArg(Payload)], Type[Response]]:
-            def __req(**payload: Payload) -> Type[Response]:
+    ) -> Callable[[KwArg(PathParam)], Callable[[KwArg(Param)], Type[Response]]]:
+        def _req(**path_params: PathParam) -> Callable[[KwArg(Param)], Type[Response]]:
+            def __req(**params: Param) -> Type[Response]:
                 return self.method(
                     meth, self._apply_path_params(endpoint, **path_params)
-                )(**payload)
+                )(**params)
 
             return __req
 
@@ -124,7 +124,7 @@ class SyncClient(ClientBase):
     def _build_request(self, method: Method) -> Callable[..., Type[Response]]:
         return getattr(requests, method.value)
 
-    def _request(self, url: Url, method: Method, **payload: Payload) -> Type[Response]:
+    def _request(self, url: Url, method: Method, **payload) -> Type[Response]:
         return self._build_request(method)(url, headers=self.headers, **payload)
 
 

@@ -1,7 +1,7 @@
 .PHONY:
 
 test:
-	poetry run python -m unittest discover -p test_*.py
+	poetry run python -m unittest tests
 
 type:
 	poetry run mypy apap
