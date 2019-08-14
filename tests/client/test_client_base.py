@@ -36,21 +36,21 @@ class TestClientBaseBuildParam(ClientBaseTestBase):
     def _callFUT(self, method, params=None):
         return self._makeOne("fuga")._build_param(method, params)
 
-    def assertPathParam(self, subject):
+    def assert_path_param(self, subject):
         self.assertTrue("params" in subject)
 
-    def assertDataParam(self, subject):
+    def assert_data_param(self, subject):
         self.assertTrue("data" in subject)
 
     def test_key_is_path_param(self):
         for m in ["Get", "Delete"]:
             subject = self._callFUT(getattr(Method, m))
-            self.assertPathParam(subject)
+            self.assert_path_param(subject)
 
     def test_key_is_data_param(self):
         for m in ["Post", "Put"]:
             subject = self._callFUT(getattr(Method, m))
-            self.assertDataParam(subject)
+            self.assert_data_param(subject)
 
     def test_without_param(self):
         for m in list(Method):
