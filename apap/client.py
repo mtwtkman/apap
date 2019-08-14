@@ -33,6 +33,7 @@ PathParam = Dict[PathParamName, Param]
 Payload = Dict[DataParamName, Param]
 Headers = Dict[HeaderVar, Any]
 HeaderDetail = Dict[HeaderName, Headers]
+Cookie = Dict[str, Any]
 
 
 class UndefinedHeaderVarError(Exception):
@@ -121,11 +122,18 @@ class ClientBase:
 
 
 class SyncClient(ClientBase):
-    def __init__(self, api_base_url: Url, header_map: Optional[HeaderMap] =None, **headers: Headers):
+    _cookies: Cookie
+
+    def __init__(
+        self,
+        api_base_url: Url,
+        header_map: Optional[HeaderMap] = None,
+        **headers: Headers,
+    ):
         super().__init__(api_base_url, header_map, **headers)
         self._cookies = {}
 
-    def set_cookies(self, cookies):
+    def set_cookies(self, **cookies) -> "SyncClient":
         self._cookies.update(cookies)
         return self
 
@@ -133,7 +141,9 @@ class SyncClient(ClientBase):
         return getattr(requests, method.value)
 
     def _request(self, url: Url, method: Method, **payload) -> Type[Response]:
-        return self._build_request(method)(url, headers=self.headers, **payload, cookies=self._cookies)
+        return self._build_request(method)(
+            url, headers=self.headers, **payload, cookies=self._cookies
+        )
 
 
 class AsyncClient(ClientBase):

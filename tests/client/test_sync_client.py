@@ -31,3 +31,18 @@ class TestSyncClientRequest(SyncClientTestBase):
         with mock.patch("apap.client.SyncClient._build_request") as M:
             self._callFUT("neko", Method.Get)
             self.assertEqual(M.call_count, 1)
+
+
+class TestSyncClientSetCookie(SyncClientTestBase):
+    def test_bound_cookies(self):
+        one = self._makeOne("xx")
+        with mock.patch("apap.client.SyncClient._build_request") as M:
+            callable_mock = mock.Mock()
+            M.return_value = callable_mock
+            cookies = dict(x=1, y="hoge")
+            url = "/yo"
+            one.set_cookies(**cookies)._request(url, Method.Get)
+            self.assertEqual(one._cookies, cookies)
+            self.assertEqual(
+                callable_mock.call_args, ((url,), ({"cookies": cookies, "headers": {}}))
+            )
