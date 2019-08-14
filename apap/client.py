@@ -121,11 +121,19 @@ class ClientBase:
 
 
 class SyncClient(ClientBase):
+    def __init__(self, api_base_url: Url, header_map: Optional[HeaderMap] =None, **headers: Headers):
+        super().__init__(api_base_url, header_map, **headers)
+        self._cookies = {}
+
+    def set_cookies(self, cookies):
+        self._cookies.update(cookies)
+        return self
+
     def _build_request(self, method: Method) -> Callable[..., Type[Response]]:
         return getattr(requests, method.value)
 
     def _request(self, url: Url, method: Method, **payload) -> Type[Response]:
-        return self._build_request(method)(url, headers=self.headers, **payload)
+        return self._build_request(method)(url, headers=self.headers, **payload, cookies=self._cookies)
 
 
 class AsyncClient(ClientBase):
