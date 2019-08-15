@@ -134,6 +134,14 @@ class SyncClient(ClientBase):
         self._cookies = {}
 
     def set_cookies(self, **cookies) -> "SyncClient":
+        self._cookies = cookies
+        return self
+
+    def reset_cookies(self) -> "SyncClient":
+        self._cookies = {}
+        return self
+
+    def add_cookies(self, **cookies) -> "SyncClient":
         self._cookies.update(cookies)
         return self
 
