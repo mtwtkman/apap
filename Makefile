@@ -10,7 +10,7 @@ lint:
 	poetry run black apap/*.py tests/**/*.py tests/*.py
 
 check:
-	make lint && make type && make test
+	make lint && make type && make test && poetry install
 
 pub:
 	make check && poetry publish --build
