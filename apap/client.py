@@ -92,20 +92,40 @@ class ClientBase:
             endpoint = endpoint.replace(f":{k}", cast(str, v))
         return endpoint
 
-    def _request(self, url: Url, method: Method, **payload) -> Type[Response]:
+    def _request(
+        self, url: Url, method: Method, cookies: Cookie, **payload
+    ) -> Type[Response]:
         raise NotImplementedError
 
     def method(
         self, meth: Method, endpoint: str
     ) -> Callable[[KwArg(Param)], Type[Response]]:
-        def _req(**params) -> Type[Response]:
-            return self._request(  # type: ignore
-                self._build_url(endpoint),
-                meth,
-                **self._build_param(meth, cast(Param, params)),
-            )
+        class Requestor:
+            def __init__(self, client):
+                self.client = client
+                self._cookies = {}
 
-        return _req
+            def set_cookies(self, **cookies) -> "Requestor":
+                self._cookies = cookies
+                return self
+
+            def reset_cookies(self) -> "Requestor":
+                self._cookies = {}
+                return self
+
+            def add_cookies(self, **cookies) -> "Requestor":
+                self._cookies.update(cookies)
+                return self
+
+            def __call__(self, **params) -> Type[Response]:
+                return self.client._request(  # type: ignore
+                    self.client._build_url(endpoint),
+                    meth,
+                    self._cookies,
+                    **self.client._build_param(meth, cast(Param, params)),
+                )
+
+        return Requestor(self)
 
     def method_with_path_params(
         self, meth: Method, endpoint: str
@@ -122,41 +142,15 @@ class ClientBase:
 
 
 class SyncClient(ClientBase):
-    _cookies: Cookie
-
-    def __init__(
-        self,
-        api_base_url: Url,
-        header_map: Optional[HeaderMap] = None,
-        **headers: Headers,
-    ):
-        super().__init__(api_base_url, header_map, **headers)
-        self._cookies = {}
-
-    def set_cookies(self, **cookies) -> "SyncClient":
-        self._cookies = cookies
-        return self
-
-    def reset_cookies(self) -> "SyncClient":
-        self._cookies = {}
-        return self
-
-    def add_cookies(self, **cookies) -> "SyncClient":
-        self._cookies.update(cookies)
-        return self
-
     def _build_request(self, method: Method) -> Callable[..., Type[Response]]:
         return getattr(requests, method.value)
 
-    def _request(self, url: Url, method: Method, **payload) -> Type[Response]:
+    def _request(
+        self, url: Url, method: Method, cookies: Cookie, **payload
+    ) -> Type[Response]:
         return self._build_request(method)(
-            url, headers=self.headers, **payload, cookies=self._cookies
+            url, headers=self.headers, **payload, cookies=cookies
         )
-
-
-class AsyncClient(ClientBase):
-    def __init__(self):
-        raise NotImplementedError
 
 
 MetaMap = namedtuple("MetaMap", "method url")
@@ -188,9 +182,6 @@ class Client:
         if not isinstance(self._method_map, MethodMap):
             raise TypeError("_method_map must be a MethodMap instance")
         sync_client = SyncClient(self.api_base_url, self.header_map, **headers)
-
-        # TODO:
-        # async_client = AsyncClient(**kwargs)
 
         for name, meta in self._method_map.items():
             client_method = detect_method_name(meta.url)

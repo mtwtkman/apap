@@ -31,7 +31,7 @@ class ClientTestBase(unittest.TestCase):
         method_name = "get_all"
         one = self._makeOne(MethodMap((method_name, Method.Get, "resources")))
         subject = getattr(one, method_name)
-        self.assertTrue("ClientBase.method." in subject.__qualname__)
+        self.assertTrue(subject.__class__.__name__, "Requesotr")
 
     def test_with_path_param(self):
         method_name = "get_one"

@@ -88,7 +88,7 @@ class TestClientBaseApplyPathParams(ClientBaseTestBase):
 
 class TestClientBaseRequest(ClientBaseTestBase):
     def _callFUT(self, url, method):
-        return self._makeOne("fuga")._request(url, method)
+        return self._makeOne("fuga")._request(url, method, {})
 
     def test_raise_not_implemented_error(self):
         with self.assertRaises(NotImplementedError):
@@ -117,7 +117,8 @@ class TestClientBaseMethod(ClientBaseTestBase):
             self.assertEqual(M.call_count, 1)
 
             self.assertEqual(
-                M.call_args, ((f"{api_base_url}/{endpoint}", method), {"data": payload})
+                M.call_args,
+                ((f"{api_base_url}/{endpoint}", method, {}), {"data": payload}),
             )
 
 
