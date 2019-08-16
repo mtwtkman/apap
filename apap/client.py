@@ -105,7 +105,7 @@ class ClientBase:
                 self.client = client
                 self._cookies = {}
 
-            def set_cookies(self, **cookies) -> "Requestor":
+            def set_cookies(self, **cookies: Cookie) -> "Requestor":
                 self._cookies = cookies
                 return self
 
@@ -113,11 +113,11 @@ class ClientBase:
                 self._cookies = {}
                 return self
 
-            def add_cookies(self, **cookies) -> "Requestor":
+            def add_cookies(self, **cookies: Cookie) -> "Requestor":
                 self._cookies.update(cookies)
                 return self
 
-            def __call__(self, **params) -> Type[Response]:
+            def __call__(self, **params: Param) -> Type[Response]:
                 return self.client._request(  # type: ignore
                     self.client._build_url(endpoint),
                     meth,
