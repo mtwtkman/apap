@@ -6,16 +6,18 @@ from inspect import Parameter
 from apap.method import Method
 
 
-class ClientBaseTestBase(unittest.TestCase):
-    def _makeOne(self, api_base_url, header_map=None, **headers):
-        from apap.client import ClientBase
+class HandlerBaseTestBase(unittest.TestCase):
+    def _makeOne(self, api_base_url, header_map=None, headers=None, cookies=None):
+        from apap.client import HandlerBase
 
-        return ClientBase(api_base_url, header_map, **headers)
+        return HandlerBase(
+            api_base_url, header_map or {}, headers=headers or {}, cookies=cookies or {}
+        )
 
 
-class TestClientBaseHeaders(ClientBaseTestBase):
-    def _callFUT(self, header_map=None, **headers):
-        return self._makeOne("fuga", header_map, **headers).headers
+class TestHandlerBaseHeaders(HandlerBaseTestBase):
+    def _callFUT(self, header_map=None, headers=None):
+        return self._makeOne("fuga", header_map, headers).headers
 
     def test_without_header_map(self):
         subject = self._callFUT()
@@ -26,13 +28,13 @@ class TestClientBaseHeaders(ClientBaseTestBase):
         header_vars = ["custom_header", "foo"]
         header_map = dict(zip(header_names, header_vars))
         values = [1, "x"]
-        subject = self._callFUT(header_map, **dict(zip(header_vars, values)))
+        subject = self._callFUT(header_map, dict(zip(header_vars, values)))
         self.assertEqual(
             subject, {k: val for k, _, val in zip(header_names, header_vars, values)}
         )
 
 
-class TestClientBaseBuildParam(ClientBaseTestBase):
+class TestHandlerBaseBuildParam(HandlerBaseTestBase):
     def _callFUT(self, method, params=None):
         return self._makeOne("fuga")._build_param(method, params)
 
@@ -64,7 +66,7 @@ class TestClientBaseBuildParam(ClientBaseTestBase):
             self.assertEqual(list(subject.values()), [expected])
 
 
-class TestClientBaseBuildUrl(ClientBaseTestBase):
+class TestHandlerBaseBuildUrl(HandlerBaseTestBase):
     def _callFUT(self, api_base_url, endpoint):
         return self._makeOne(api_base_url)._build_url(endpoint)
 
@@ -75,7 +77,7 @@ class TestClientBaseBuildUrl(ClientBaseTestBase):
         self.assertEqual(subject, "toudou/shion")
 
 
-class TestClientBaseApplyPathParams(ClientBaseTestBase):
+class TestHandlerBaseApplyPathParams(HandlerBaseTestBase):
     def _callFUT(self, endpoint, **path_params):
         return self._makeOne("hoge")._apply_path_params(endpoint, **path_params)
 
@@ -86,7 +88,7 @@ class TestClientBaseApplyPathParams(ClientBaseTestBase):
         self.assertEqual(subject, "y/A/z/B/---")
 
 
-class TestClientBaseRequest(ClientBaseTestBase):
+class TestHandlerBaseRequest(HandlerBaseTestBase):
     def _callFUT(self, url, method):
         return self._makeOne("fuga")._request(url, method, {})
 
@@ -95,7 +97,7 @@ class TestClientBaseRequest(ClientBaseTestBase):
             self._callFUT("", Method.Get)
 
 
-class TestClientBaseMethod(ClientBaseTestBase):
+class TestHandlerBaseMethod(HandlerBaseTestBase):
     def _callFUT(self, method, api_base_url, endpoint):
         return self._makeOne(api_base_url).method(method, endpoint)
 
@@ -108,7 +110,7 @@ class TestClientBaseMethod(ClientBaseTestBase):
             self.assertEqual(v.kind, Parameter.VAR_KEYWORD)
 
     def test_inner_func_calls__request(self):
-        with mock.patch("apap.client.ClientBase._request") as M:
+        with mock.patch("apap.client.HandlerBase._request") as M:
             api_base_url = "neko"
             endpoint = "inu"
             method = Method.Post
@@ -122,7 +124,7 @@ class TestClientBaseMethod(ClientBaseTestBase):
             )
 
 
-class TestClientBaseMethodWithPathParams(ClientBaseTestBase):
+class TestHandlerBaseMethodWithPathParams(HandlerBaseTestBase):
     def _callFUT(self, method, api_base_url, endpoint):
         return self._makeOne(api_base_url).method_with_path_params(method, endpoint)
 
@@ -144,8 +146,8 @@ class TestClientBaseMethodWithPathParams(ClientBaseTestBase):
     def test_deepest_func_calls_method(self):
         endpoint = "cats/:name"
         params = {"name": "nico"}
-        with mock.patch("apap.client.ClientBase.method") as M, mock.patch(
-            "apap.client.ClientBase._apply_path_params"
+        with mock.patch("apap.client.HandlerBase.method") as M, mock.patch(
+            "apap.client.HandlerBase._apply_path_params"
         ) as M2:
             self._callFUT(Method.Get, "meth", endpoint)(**params)()
             self.assertEqual(M.call_count, 1)

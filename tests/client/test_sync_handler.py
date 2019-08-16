@@ -6,14 +6,14 @@ import requests
 from apap.method import Method
 
 
-class SyncClientTestBase(unittest.TestCase):
-    def _makeOne(self, api_base_url, header_map=None, **headers):
-        from apap.client import SyncClient
+class SyncHandlerTestBase(unittest.TestCase):
+    def _makeOne(self, api_base_url, header_map=None, headers=None, cookies=None):
+        from apap.client import SyncHandler
 
-        return SyncClient(api_base_url, header_map, **headers)
+        return SyncHandler(api_base_url, header_map or {}, headers or {}, cookies or {})
 
 
-class TestSyncClientBuildRequest(SyncClientTestBase):
+class TestSyncHandlerBuildRequest(SyncHandlerTestBase):
     def _callFUT(self, method):
         return self._makeOne("fuga")._build_request(method)
 
@@ -23,11 +23,11 @@ class TestSyncClientBuildRequest(SyncClientTestBase):
             self.assertEqual(subject, getattr(requests, m.lower()))
 
 
-class TestSyncClientRequest(SyncClientTestBase):
+class TestSyncHandlerRequest(SyncHandlerTestBase):
     def _callFUT(self, url, method, cookies, **payload):
         return self._makeOne("fuga")._request(url, method, cookies, **payload)
 
     def test_call__build_request(self):
-        with mock.patch("apap.client.SyncClient._build_request") as M:
+        with mock.patch("apap.client.SyncHandler._build_request") as M:
             self._callFUT("neko", Method.Get, {})
             self.assertEqual(M.call_count, 1)

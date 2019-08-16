@@ -33,41 +33,39 @@ PathParam = Dict[PathParamName, Param]
 Payload = Dict[DataParamName, Param]
 Headers = Dict[HeaderVar, Any]
 HeaderDetail = Dict[HeaderName, Headers]
-Cookie = Dict[str, Any]
+Cookies = Dict[str, Any]
 
 
 class UndefinedHeaderVarError(Exception):
     pass
 
 
-class ClientBase:
+class HandlerBase:
     def __init__(
         self,
         api_base_url: Url,
-        header_map: Optional[HeaderMap] = None,
-        **headers: Headers,
+        header_map: HeaderMap,
+        headers: Headers,
+        cookies: Cookies,
     ):
         self.api_base_url = api_base_url
         self.header_map = header_map
+        self.cookies = cookies
         for var, val in headers.items():
             if not self._inverted_header_map.get(cast(HeaderVar, var)):
                 raise UndefinedHeaderVarError(var)
             setattr(self, var, val)
-
-    @property
-    def _h(self) -> HeaderMap:
-        return self.header_map or {}
 
     def _header_name_from_var(self, var: HeaderVar) -> HeaderName:
         return self._inverted_header_map[var]
 
     @property
     def _inverted_header_map(self) -> Dict[HeaderVar, HeaderName]:
-        return {v: k for k, v in self._h.items()}
+        return {v: k for k, v in self.header_map.items()}
 
     @property
     def _header_vars(self) -> ValuesView[HeaderVar]:
-        return self._h.values()
+        return self.header_map.values()
 
     @property
     def headers(self) -> HeaderDetail:
@@ -93,7 +91,7 @@ class ClientBase:
         return endpoint
 
     def _request(
-        self, url: Url, method: Method, cookies: Cookie, **payload
+        self, url: Url, method: Method, cookies: Cookies, **payload
     ) -> Type[Response]:
         raise NotImplementedError
 
@@ -101,28 +99,28 @@ class ClientBase:
         self, meth: Method, endpoint: str
     ) -> Callable[[KwArg(Param)], Type[Response]]:
         class Requestor:
-            def __init__(self, client):
-                self.client = client
-                self._cookies = {}
+            def __init__(self, handler):
+                self.handler = handler
+                self._extra_cookies = {}
 
-            def set_cookies(self, **cookies: Cookie) -> "Requestor":
-                self._cookies = cookies
+            def set_cookies(self, **cookies: Cookies) -> "Requestor":
+                self._extra_cookies = cookies
                 return self
 
             def reset_cookies(self) -> "Requestor":
-                self._cookies = {}
+                self._extra_cookies = {}
                 return self
 
-            def add_cookies(self, **cookies: Cookie) -> "Requestor":
-                self._cookies.update(cookies)
+            def add_cookies(self, **cookies: Cookies) -> "Requestor":
+                self._extra_cookies.update(cookies)
                 return self
 
             def __call__(self, **params: Param) -> Type[Response]:
-                return self.client._request(  # type: ignore
-                    self.client._build_url(endpoint),
+                return self.handler._request(  # type: ignore
+                    self.handler._build_url(endpoint),
                     meth,
-                    self._cookies,
-                    **self.client._build_param(meth, cast(Param, params)),
+                    {**self.handler.cookies, **self._extra_cookies},
+                    **self.handler._build_param(meth, cast(Param, params)),
                 )
 
         return Requestor(self)
@@ -141,12 +139,12 @@ class ClientBase:
         return _req
 
 
-class SyncClient(ClientBase):
+class SyncHandler(HandlerBase):
     def _build_request(self, method: Method) -> Callable[..., Type[Response]]:
         return getattr(requests, method.value)
 
     def _request(
-        self, url: Url, method: Method, cookies: Cookie, **payload
+        self, url: Url, method: Method, cookies: Cookies, **payload
     ) -> Type[Response]:
         return self._build_request(method)(
             url, headers=self.headers, **payload, cookies=cookies
@@ -176,12 +174,14 @@ class Client:
     api_base_url: Url
     header_map: Optional[HeaderMap] = None
 
-    def __init__(self, **headers: Headers):
+    def __init__(self, headers: Headers, cookies: Cookies):
         if not hasattr(self, "_method_map"):
             raise NotImplementedError("_method_map")
         if not isinstance(self._method_map, MethodMap):
             raise TypeError("_method_map must be a MethodMap instance")
-        sync_client = SyncClient(self.api_base_url, self.header_map, **headers)
+        sync_client = SyncHandler(
+            self.api_base_url, self.header_map or {}, headers, cookies
+        )
 
         for name, meta in self._method_map.items():
             client_method = detect_method_name(meta.url)

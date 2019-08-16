@@ -16,7 +16,7 @@ class TestApply(unittest.TestCase):
             header_map = {"X-My-Header": "my_header"}
 
         class Endpoint1(Api):
-            name = "endoint1"
+            name = "endpoint1"
             _method_map = MethodMap(
                 ("get", Method.Get, "endpoint1/resources"),
                 ("get_all", Method.Get, "endpoint1/resources/{{id}}"),
@@ -27,6 +27,8 @@ class TestApply(unittest.TestCase):
             _method_map = MethodMap(("post", Method.Post, "endpoin2/resources"))
 
         clients = [Endpoint1, Endpoint2]
-        subject = self._callFUT(*clients)(my_header="hoge")
+        subject = self._callFUT(*clients)(
+            headers={"my_header": "hoge"}, cookies={"my_cookie": "cookie"}
+        )
         for c in clients:
             self.assertTrue(hasattr(subject, c.name))

@@ -8,13 +8,13 @@ class ClientTestBase(unittest.TestCase):
     def setUp(self):
         self.api_base_url = "https://api/v1"
 
-    def _makeOne(self, method_map, header_map=None, **headers):
+    def _makeOne(self, method_map, header_map=None, headers=None, cookies=None):
         from apap.client import Client
 
         Client._method_map = method_map
         Client.api_base_url = self.api_base_url
-        Client.header_map = header_map
-        return Client(**headers)
+        Client.header_map = header_map or {}
+        return Client(headers or {}, cookies or {})
 
     def test_generate_method(self):
         methods = [
@@ -37,4 +37,4 @@ class ClientTestBase(unittest.TestCase):
         method_name = "get_one"
         one = self._makeOne(MethodMap((method_name, Method.Get, "resources/:id")))
         subject = getattr(one, method_name)
-        self.assertTrue("ClientBase.method_with_path_params." in subject.__qualname__)
+        self.assertTrue("HandlerBase.method_with_path_params." in subject.__qualname__)
