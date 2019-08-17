@@ -142,7 +142,7 @@ class SyncHandler(HandlerBase):
         self, url: Url, method: Method, cookies: Cookies, **payload
     ) -> Type[Response]:
         return self._build_request(method)(
-            url, headers=self.headers, **payload, cookies=cookies
+            url, headers=self.headers, cookies=cookies, **payload
         )
 
 
