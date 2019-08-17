@@ -33,10 +33,10 @@ class TestSyncHandlerRequest(SyncHandlerTestBase):
             self.assertEqual(M.call_count, 1)
 
     def test_pass_default_cookies(self):
-        with mock.patch('apap.client.SyncHandler._build_request') as M:
+        with mock.patch("apap.client.SyncHandler._build_request") as M:
             inner_mock = mock.Mock()
             M.return_value = inner_mock
-            cookie = {'myid': 'cookie-value'}
-            self._callFUT('neko', Method.Get, cookie)
+            cookie = {"myid": "cookie-value"}
+            self._callFUT("neko", Method.Get, cookie)
             _, kwargs = inner_mock.call_args
-            self.assertTrue(kwargs== {'headers': {}, 'cookies': cookie})
+            self.assertTrue(kwargs == {"headers": {}, "cookies": cookie})

@@ -36,7 +36,7 @@ class TestHandlerBaseHeaders(HandlerBaseTestBase):
 
     def test_raise_exception_by_unknown_key_in_header_map(self):
         with self.assertRaises(UnknownHeaderError):
-            self._callFUT(headers={'x': 1})
+            self._callFUT(headers={"x": 1})
 
 
 class TestHandlerBaseBuildParam(HandlerBaseTestBase):
