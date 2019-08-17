@@ -179,14 +179,14 @@ class Client:
             raise NotImplementedError("_method_map")
         if not isinstance(self._method_map, MethodMap):
             raise TypeError("_method_map must be a MethodMap instance")
-        sync_client = SyncHandler(
+        sync_handler = SyncHandler(
             self.api_base_url, self.header_map or {}, headers, cookies
         )
 
         for name, meta in self._method_map.items():
             client_method = detect_method_name(meta.url)
             setattr(
-                self, name, getattr(sync_client, client_method)(meta.method, meta.url)
+                self, name, getattr(sync_handler, client_method)(meta.method, meta.url)
             )
 
     @property
