@@ -36,7 +36,7 @@ HeaderDetail = Dict[HeaderName, Headers]
 Cookies = Dict[str, Any]
 
 
-class UndefinedHeaderVarError(Exception):
+class UnknownHeaderError(Exception):
     pass
 
 
@@ -53,7 +53,7 @@ class HandlerBase:
         self.cookies = cookies
         for var, val in headers.items():
             if not self._inverted_header_map.get(cast(HeaderVar, var)):
-                raise UndefinedHeaderVarError(var)
+                raise UnknownHeaderError(var)
             setattr(self, var, val)
 
     def _header_name_from_var(self, var: HeaderVar) -> HeaderName:
@@ -129,12 +129,7 @@ class HandlerBase:
         self, meth: Method, endpoint: str
     ) -> Callable[[KwArg(PathParam)], Callable[[KwArg(Param)], Type[Response]]]:
         def _req(**path_params: PathParam) -> Callable[[KwArg(Param)], Type[Response]]:
-            def __req(**params: Param) -> Type[Response]:
-                return self.method(
-                    meth, self._apply_path_params(endpoint, **path_params)
-                )(**params)
-
-            return __req
+            return self.method(meth, self._apply_path_params(endpoint, **path_params))
 
         return _req
 

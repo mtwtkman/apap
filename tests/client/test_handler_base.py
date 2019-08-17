@@ -4,6 +4,7 @@ import inspect
 from inspect import Parameter
 
 from apap.method import Method
+from apap.client import UnknownHeaderError
 
 
 class HandlerBaseTestBase(unittest.TestCase):
@@ -32,6 +33,10 @@ class TestHandlerBaseHeaders(HandlerBaseTestBase):
         self.assertEqual(
             subject, {k: val for k, _, val in zip(header_names, header_vars, values)}
         )
+
+    def test_raise_exception_by_unknown_key_in_header_map(self):
+        with self.assertRaises(UnknownHeaderError):
+            self._callFUT(headers={'x': 1})
 
 
 class TestHandlerBaseBuildParam(HandlerBaseTestBase):
